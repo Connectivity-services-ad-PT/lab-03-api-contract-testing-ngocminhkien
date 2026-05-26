@@ -24,13 +24,14 @@ jobs:
 
       - name: Run Mock Servers and Execute Newman Tests
         run: |
+          
           npx prism mock contracts/analytics.openapi.yaml -p 4010 --host 0.0.0.0 &
           npx prism mock contracts/iot-ingestion.openapi.yaml -p 4011 --host 0.0.0.0 &
           npx prism mock contracts/ai-vision.openapi.yaml -p 4012 --host 0.0.0.0 &
           
           
-          echo "Waiting for all mock servers to wake up..."
-          npx wait-on http://localhost:4010/health http://localhost:4011/health http://localhost:4012/health --timeout 45000
+          echo "Waiting for all mock servers to wake up via GET requests..."
+          npx wait-on http-get://localhost:4010/health http-get://localhost:4011/health http-get://localhost:4012/health --timeout 45000
           
           
           echo "All systems green! Running Newman integration tests..."
