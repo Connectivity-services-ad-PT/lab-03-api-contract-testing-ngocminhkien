@@ -22,24 +22,16 @@ jobs:
       - name: Lint OpenAPI contracts
         run: npx @stoplight/spectral-cli lint contracts/*.yaml --fail-severity error
 
-      - name: Start All Prism mock servers directly
+      - name: Run Mock Servers and Execute Newman Tests
         run: |
           npx prism mock contracts/analytics.openapi.yaml -p 4010 --host 0.0.0.0 &
           npx prism mock contracts/iot-ingestion.openapi.yaml -p 4011 --host 0.0.0.0 &
           npx prism mock contracts/ai-vision.openapi.yaml -p 4012 --host 0.0.0.0 &
-
-      - name: Wait for all mock servers to be ready
-        run: |
-          npx wait-on http://localhost:4010/health --timeout 30000
-          npx wait-on http://localhost:4011/health --timeout 30000
-          npx wait-on http://localhost:4012/health --timeout 30000
-
-      - name: Run Newman on mock environment
-        run: npm run test:mock
-
-      - name: Upload Newman reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: newman-reports
-          path: reports/
+          
+          
+          echo "Waiting for all mock servers to wake up..."
+          npx wait-on http://localhost:4010/health http://localhost:4011/health http://localhost:4012/health --timeout 45000
+          
+          
+          echo "All systems green! Running Newman integration tests..."
+          npm run test:mock
